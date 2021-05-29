@@ -2,7 +2,7 @@
 
 import wx
 import os
-import thread
+import _thread as thread
 import traceback
 import sys
 import numpy
@@ -143,12 +143,12 @@ class Viewer(object):
                 except:
                     log.warning("rendering pass failed")
                     e, v, tb = sys.exc_info()
-                    print v
+                    print(v)
                     traceback.print_tb(tb)
 
         except:
             e, v, tb = sys.exc_info()
-            print v
+            print(v)
             traceback.print_tb(tb)
     
     def setActiveTool(self, tool):
@@ -626,7 +626,7 @@ class Whiteboard(wx.Frame):
             path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
             dlg.Destroy()
 
-            f = file(path, "rb")
+            f = open(path, "rb")
             d = pickle.load(f)
             f.close()
             self.viewer.setObjects([objects.deserialize(o, self.viewer) for o in d["objects"]])
@@ -638,7 +638,7 @@ class Whiteboard(wx.Frame):
             path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
             dlg.Destroy()
 
-            f = file(path, "wb")
+            f = open(path, "wb")
             pickle.dump({"objects": [o.serialize() for o in self.viewer.getObjects()]}, f)
             f.close()
 

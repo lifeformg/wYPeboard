@@ -161,7 +161,7 @@ class Image(BaseObject):
             format = "RGBA"
             s = pygame.image.tostring(self.image, format)
             cs = s.encode("zlib")
-            print "compression: %d -> %d" % (len(s), len(cs))
+            print("compression: %d -> %d" % (len(s), len(cs)))
             return (cs, self.image.get_size(), format)
         return super(Image, self)._serializeValue(name, value)
 

@@ -52,7 +52,7 @@ class DispatchingWhiteboard(Whiteboard):
 		#sprite.pos = pos
 
 	def _deserialize(self, s):
-		if not type(s) == str:
+		if not type(s) == bytes:
 			return s
 		return objects.deserialize(s, self.viewer)
 
@@ -166,17 +166,17 @@ if __name__=='__main__':
 			ipv6 = True
 			argv = argv[1:]
 		else:
-			print "invalid argument: %s" % a
+			print( "invalid argument: %s" % a)
 			help = True
 			break
 	if help or isServer is None:
 		appName = "sync.py"
-		print "\nwYPeboard\n"
-		print "usage:"
-		print "   server:  %s [options] serve <port>" % appName
-		print "   client:  %s [options] connect <server> <port>" % appName
-		print "\noptions:"
-		print "   --ipv6   use IPv6 instead of IPv4"
+		print( "\nwYPeboard\n")
+		print( "usage:")
+		print( "   server:  %s [options] serve <port>" % appName)
+		print( "   client:  %s [options] connect <server> <port>" % appName)
+		print( "\noptions:")
+		print( "   --ipv6   use IPv6 instead of IPv4")
 		sys.exit(1)
 	whiteboard = DispatchingWhiteboard("wYPeboard server" if isServer else "wYPeboard client", isServer, canvasSize=size)
 	if isServer:

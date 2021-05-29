@@ -15,7 +15,7 @@ class Dispatcher(asyncore.dispatcher_with_send):
         asyncore.dispatcher_with_send.__init__(self, sock=sock)
         self.ipv6 = ipv6
         self.terminator = "\r\n\r\n$end$\r\n\r\n"
-        self.recvBuffer = ""
+        self.recvBuffer = b""
         self.__debug = False
 
     def send(self, data):
@@ -24,7 +24,7 @@ class Dispatcher(asyncore.dispatcher_with_send):
             log.debug("hash: %s", hashlib.sha224(data).hexdigest())
         # NOTE: explicitly *not* calling asyncore.dispatcher_with_send.send, because it's not thread-safe
         # Instead, we just add to the output buffer, such that actual sending will take place only from one thread: the one running in asyncore.loop
-        self.out_buffer = self.out_buffer + data + self.terminator
+        self.out_buffer = self.out_buffer + data + self.terminator.encode("utf-8")
 
     def createSocket(self):
         self.create_socket(socket.AF_INET6 if self.ipv6 else socket.AF_INET, socket.SOCK_STREAM)
@@ -37,14 +37,17 @@ class Dispatcher(asyncore.dispatcher_with_send):
         log.debug("recvBuffer size: %d" % len(self.recvBuffer))
         while True:
             try:
-                tpos = self.recvBuffer.index(self.terminator)
+                print(self.recvBuffer)
+                tpos = self.recvBuffer.index(self.terminator.encode("utf-8"))
+
             except:
+                print("no terminator")
                 break
             packet = self.recvBuffer[:tpos]
             log.debug("received packet; size %d" % len(packet))
             if self.__debug: log.debug("hash: %s", hashlib.sha224(packet).hexdigest())
             if len(packet) > 20000:
-                with file("bigdata.dat", "wb") as f:
+                with open("bigdata.dat", "wb") as f:
                     f.write(packet)
                     f.close()
             self.handle_packet(packet)
