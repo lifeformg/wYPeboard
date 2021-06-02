@@ -134,7 +134,8 @@ class BaseObject(sprite.Sprite):
 
 class Rectangle(BaseObject):
     def __init__(self, d, game, **kwargs):
-        if not "isUserObject" in kwargs: kwargs["isUserObject"] = True
+        if not "isUserObject" in kwargs:
+            kwargs["isUserObject"] = True
         BaseObject.__init__(self, d, game, persistentMembers=["colour"], **kwargs)
         self.setSize(self.rect.width, self.rect.height)
             
@@ -143,6 +144,24 @@ class Rectangle(BaseObject):
         alpha = len(self.colour) == 4
         surface = pygame.Surface((width, height), flags=pygame.SRCALPHA if alpha else 0)
         surface.fill(self.colour)
+        self.image = surface.convert() if not alpha else surface.convert_alpha()
+        self.rect.width = width
+        self.rect.height = height
+
+class Circle(BaseObject):
+    def __init__(self, d, game, **kwargs):
+        if not "isUserObject" in kwargs:
+            kwargs["isUserObject"] = True
+        BaseObject.__init__(self, d, game, persistentMembers=["colour"], **kwargs)
+        self.setSize(self.rect.width, self.rect.height)
+
+    def setRedius(self, radius):
+        radius = max(1, radius)
+        alpha = len(self.colour) == 4
+        width,height = (radius * 2, radius * 2)
+        surface = pygame.Surface((width,height), flags=pygame.SRCALPHA if alpha else 0)
+        surface.fill(self.colour)
+        pygame.draw.circle(surface, self.colour, (radius,radius),radius)
         self.image = surface.convert() if not alpha else surface.convert_alpha()
         self.rect.width = width
         self.rect.height = height
@@ -350,7 +369,7 @@ class Text(Image):
             w, h = self.font.size(l)
             width = max(w, width)
             height += h
-        
+
         surface = pygame.Surface((width, height))
         surface.fill((255, 255, 255))
         
