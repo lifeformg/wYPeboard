@@ -153,14 +153,15 @@ class Circle(BaseObject):
         if not "isUserObject" in kwargs:
             kwargs["isUserObject"] = True
         BaseObject.__init__(self, d, game, persistentMembers=["colour"], **kwargs)
-        self.setSize(self.rect.width, self.rect.height)
+        print(f"{self.rect.left} - {self.rect.centerx}")
+        self.setRadius(int(self.rect.width/2))
 
-    def setRedius(self, radius):
+    def setRadius(self, radius):
+        print(f"setRadius:r={radius}")
         radius = max(1, radius)
         alpha = len(self.colour) == 4
         width,height = (radius * 2, radius * 2)
         surface = pygame.Surface((width,height), flags=pygame.SRCALPHA if alpha else 0)
-        surface.fill(self.colour)
         pygame.draw.circle(surface, self.colour, (radius,radius),radius)
         self.image = surface.convert() if not alpha else surface.convert_alpha()
         self.rect.width = width

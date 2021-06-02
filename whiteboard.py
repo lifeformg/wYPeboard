@@ -363,6 +363,7 @@ class RectTool(Tool):
         topLeft = numpy.array([self.obj.rect.left, self.obj.rect.top])
         pos = numpy.array([x, y]) - self.camera.pos
         dim = pos - topLeft
+        print(f"pos={pos},left={self.obj.rect.left}")
         if dim[0] > 0 and dim[1] > 0:
             self.obj.setSize(dim[0], dim[1])
 
@@ -378,22 +379,30 @@ class CircleTool(Tool):
     # 工具被选中时鼠标单击时调用，创建此函数返回的对象，并将状态维护在self.obj中
     # （这里的self.obj很可能引用了被添加的形状，从而在添加后还能在松开鼠标之前持续改变对象大小）
     def startPos(self, x, y):
-        self.obj = objects.Circle({"rect": pygame.Rect(x-5, y-5, 10, 10), "colour": self.wb.getColour()},self.viewer)
+        # print("按下")
+        # print(x,y)
+        self.obj = objects.Circle({"rect": pygame.Rect(x, y, 10, 10), "colour": self.wb.getColour()},self.viewer)
+        # print(f"created circle{pygame.Rect(x, y, 10, 10).center},{pygame.Rect(x-5, y-5, 10, 10).left}")
         return self.obj
 
     # 鼠标移动时调用，持续改为形状大小
     def addPos(self, x, y):
         if self.obj is None: return
-        center = numpy.array(self.obj.rect.center)
+        left = self.obj.rect.left
         pos = numpy.array([x, y]) - self.camera.pos
-        dim = pos - center
-        if dim[0] > 0 and dim[1] > 0:
-            self.obj.setRadius(dim[1])
+        # print(f"pos={pos},centerx={centerx},left={self.obj.rect.left}")
+        dim = pos[0] - left
+        if dim>0:
+            print(f"dim = {int(dim)}")
+            self.obj.setRadius(int(dim/2))
+        # print("changed circle")
+
 
     # 用户拖拽鼠标松开后调用，只是清空了obj
     def end(self, x, y):
         if self.obj is not None: self.wb.onObjectCreationCompleted(self.obj) #这里没用，空的钩子
         super(CircleTool, self).end(x, y)
+        print(f"销毁{self.obj}")
 
 class EraserTool(Tool):
     def __init__(self, wb):
@@ -586,6 +595,7 @@ class Whiteboard(wx.Frame):
         self.penTool = PenTool(self)
         self.textTool = TextTool(self)
         self.rectTool = RectTool(self)
+        self.circleTool = CircleTool(self)
         self.eraserTool = EraserTool(self)
         self.selectTool = SelectTool(self)
         self.fontTool = FontTool(self)
@@ -594,18 +604,19 @@ class Whiteboard(wx.Frame):
              self.colourTool,
              self.penTool,
              self.rectTool,
+             self.circleTool,
              self.textTool,
              self.fontTool,
              self.eraserTool
         ]
-        self.toolKeys = {
-            (pygame.K_p, pygame.KMOD_NONE): self.penTool,
-            (pygame.K_d, pygame.KMOD_NONE): self.penTool,
-            (pygame.K_r, pygame.KMOD_NONE): self.rectTool,
-            (pygame.K_e, pygame.KMOD_NONE): self.eraserTool,
-            (pygame.K_s, pygame.KMOD_NONE): self.selectTool,
-            (pygame.K_t, pygame.KMOD_NONE): self.textTool
-        }
+        # self.toolKeys = {
+        #     (pygame.K_p, pygame.KMOD_NONE): self.penTool,
+        #     (pygame.K_d, pygame.KMOD_NONE): self.penTool,
+        #     (pygame.K_r, pygame.KMOD_NONE): self.rectTool,
+        #     (pygame.K_e, pygame.KMOD_NONE): self.eraserTool,
+        #     (pygame.K_s, pygame.KMOD_NONE): self.selectTool,
+        #     (pygame.K_t, pygame.KMOD_NONE): self.textTool
+        # }
         box = wx.BoxSizer(wx.HORIZONTAL)
         for i, tool in enumerate(tools):
             control = tool.toolbarItem(toolbar, self.onSelectTool)
@@ -677,11 +688,12 @@ class Whiteboard(wx.Frame):
         sys.exit(0)
 
     def onKeyDown(self, event):
-        key = (event.key, event.mod)
-        tool = self.toolKeys.get(key)
-        if tool is not None:
-            self.onSelectTool(tool)
-    
+        # key = (event.key, event.mod)
+        # tool = self.toolKeys.get(key)
+        # if tool is not None:
+        #     self.onSelectTool(tool)
+        pass
+
     def onPasteImage(self, event):
         bdo = wx.BitmapDataObject()
         self.clipboard.Open()
