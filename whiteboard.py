@@ -371,6 +371,30 @@ class RectTool(Tool):
         if self.obj is not None: self.wb.onObjectCreationCompleted(self.obj) #这里没用，空的钩子
         super(RectTool, self).end(x, y)
 
+class CircleTool(Tool):
+    def __init__(self, wb):
+        Tool.__init__(self, "circle", wb)
+
+    # 工具被选中时鼠标单击时调用，创建此函数返回的对象，并将状态维护在self.obj中
+    # （这里的self.obj很可能引用了被添加的形状，从而在添加后还能在松开鼠标之前持续改变对象大小）
+    def startPos(self, x, y):
+        self.obj = objects.Circle({"rect": pygame.Rect(x-5, y-5, 10, 10), "colour": self.wb.getColour()},self.viewer)
+        return self.obj
+
+    # 鼠标移动时调用，持续改为形状大小
+    def addPos(self, x, y):
+        if self.obj is None: return
+        center = numpy.array(self.obj.rect.center)
+        pos = numpy.array([x, y]) - self.camera.pos
+        dim = pos - center
+        if dim[0] > 0 and dim[1] > 0:
+            self.obj.setRadius(dim[1])
+
+    # 用户拖拽鼠标松开后调用，只是清空了obj
+    def end(self, x, y):
+        if self.obj is not None: self.wb.onObjectCreationCompleted(self.obj) #这里没用，空的钩子
+        super(CircleTool, self).end(x, y)
+
 class EraserTool(Tool):
     def __init__(self, wb):
         Tool.__init__(self, "eraser", wb)
