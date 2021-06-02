@@ -148,16 +148,30 @@ class Rectangle(BaseObject):
         self.rect.width = width
         self.rect.height = height
 
+class Ellipse(Rectangle):
+    def __init__(self,d,game,**kwargs):
+        if not "isUserObject" in kwargs:
+            kwargs["isUserObject"] = True
+        BaseObject.__init__(self, d, game, persistentMembers=["colour"], **kwargs)
+        self.setSize(self.rect.width, self.rect.height)
+
+    def setSize(self, width,height):
+        width, height = max(1, width), max(1, height)
+        alpha = len(self.colour) == 4
+        surface = pygame.Surface((width, height), flags=pygame.SRCALPHA if alpha else 0)
+        pygame.draw.ellipse(surface, self.colour, pygame.Rect(0, 0, width,height))
+        self.image = surface.convert() if not alpha else surface.convert_alpha()
+        self.rect.width = width
+        self.rect.height = height
+
 class Circle(BaseObject):
     def __init__(self, d, game, **kwargs):
         if not "isUserObject" in kwargs:
             kwargs["isUserObject"] = True
         BaseObject.__init__(self, d, game, persistentMembers=["colour"], **kwargs)
-        print(f"{self.rect.left} - {self.rect.centerx}")
         self.setRadius(int(self.rect.width/2))
 
     def setRadius(self, radius):
-        print(f"setRadius:r={radius}")
         radius = max(1, radius)
         alpha = len(self.colour) == 4
         width,height = (radius * 2, radius * 2)
