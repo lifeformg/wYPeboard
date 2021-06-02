@@ -95,7 +95,7 @@ class BaseObject(sprite.Sprite):
         sprite.Sprite.kill(self)
 
     def offset(self, x, y):
-        self.pos += numpy.array([x,y])
+        self.pos += numpy.array([int(x),int(y)])
     
     def toDict(self):    	
         d = {
@@ -148,7 +148,7 @@ class Rectangle(BaseObject):
         self.rect.width = width
         self.rect.height = height
 
-class Ellipse(Rectangle):
+class Ellipse(BaseObject):
     def __init__(self,d,game,**kwargs):
         if not "isUserObject" in kwargs:
             kwargs["isUserObject"] = True
@@ -177,6 +177,21 @@ class Circle(BaseObject):
         width,height = (radius * 2, radius * 2)
         surface = pygame.Surface((width,height), flags=pygame.SRCALPHA if alpha else 0)
         pygame.draw.circle(surface, self.colour, (radius,radius),radius)
+        self.image = surface.convert() if not alpha else surface.convert_alpha()
+        self.rect.width = width
+        self.rect.height = height
+
+class Line(BaseObject):
+    def __init__(self,d,game,**kwargs):
+        if not "isUserObject" in kwargs:
+            kwargs["isUserObject"] = True
+        BaseObject.__init__(self, d, game, persistentMembers=["colour"], **kwargs)
+        self.setSize(self.rect.width, self.rect.height)
+
+    def setEnd(self, movex,movey):# 相对于起点的移动距离
+        alpha = len(self.colour) == 4
+        surface = pygame.Surface(abs(movex), abs(movey), flags=pygame.SRCALPHA if alpha else 0)
+        pygame.draw.line(surface,self.colour,())
         self.image = surface.convert() if not alpha else surface.convert_alpha()
         self.rect.width = width
         self.rect.height = height
