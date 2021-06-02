@@ -23,23 +23,20 @@ log = logging.getLogger(__name__)
 
 #核心显示panel，图形在这里通过viewer显示
 class SDLPanel(wx.Panel):
-    def __init__(self, parent, ID, tplSize, caption, isInline):
+    def __init__(self, parent, ID, tplSize, caption):
         global pygame, level, renderer, objects, canvas
         wx.Panel.__init__(self, parent, ID, size=tplSize)
         self.Fit()
 
-        # initialize pygame-related stuff
-        if isInline:
-            os.environ['SDL_WINDOWID'] = str(self.GetHandle())
-            os.environ['SDL_VIDEODRIVER'] = 'windib'
+        os.environ['SDL_WINDOWID'] = str(self.GetHandle())
+        os.environ['SDL_VIDEODRIVER'] = 'windib'
         import pygame  # this has to happen after setting the environment variables.
         import renderer
         import objects
+
         pygame.display.init()   
         pygame.font.init()
 
-        #import pygame.freetype
-        #pygame.freetype.init()
         pygame.display.set_caption(caption)
 
         # initialize level viewer
@@ -523,16 +520,14 @@ class FontTool(Tool):
         return self.picker.GetSelectedFont()
 
 class Whiteboard(wx.Frame):
-    def __init__(self, strTitle, canvasSize=(800, 600)):
+    def __init__(self, strTitle, canvasSize=(1000, 800)):
         self.isMultiWindow = platform.system() != "Windows"
         parent = None
-        size = canvasSize if not self.isMultiWindow else (80, 200)
-        if not self.isMultiWindow:
-            style = wx.DEFAULT_FRAME_STYLE #& ~wx.RESIZE_BORDER & ~wx.MAXIMIZE_BOX
-        else:
-            style = (wx.STAY_ON_TOP | wx.CAPTION) & ~wx.SYSTEM_MENU
+        size = canvasSize
+        style = wx.DEFAULT_FRAME_STYLE
+
         wx.Frame.__init__(self, parent, wx.ID_ANY, strTitle, size=size, style=style)
-        self.pnlSDL = SDLPanel(self, -1, canvasSize, strTitle, not self.isMultiWindow)
+        self.pnlSDL = SDLPanel(self, -1, canvasSize, strTitle)
         self.clipboard = wx.Clipboard()
 
         # Menu Bar
@@ -555,15 +550,9 @@ class Whiteboard(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onPasteImage, id=201)
         
         menus = ((self.file_menu, "File"), (self.edit_menu, "Edit"))
-        
-        if not self.isMultiWindow:
-            for menu, name in menus:
-                self.frame_menubar.Append(menu, name)
-        else:
-            joinedMenu = wx.Menu()
-            for i, (menu, name) in enumerate(menus):
-                joinedMenu.AppendMenu(i, name, menu)
-            self.frame_menubar.Append(joinedMenu, "Menu")
+
+        for menu, name in menus:
+            self.frame_menubar.Append(menu, name)
 
         self.viewer = self.pnlSDL.viewer
 
@@ -593,24 +582,16 @@ class Whiteboard(wx.Frame):
             (pygame.K_s, pygame.KMOD_NONE): self.selectTool,
             (pygame.K_t, pygame.KMOD_NONE): self.textTool
         }
-        box = wx.BoxSizer(wx.HORIZONTAL if not self.isMultiWindow else wx.VERTICAL)
+        box = wx.BoxSizer(wx.HORIZONTAL)
         for i, tool in enumerate(tools):
             control = tool.toolbarItem(toolbar, self.onSelectTool)
-            box.Add(control, 1 if self.isMultiWindow else 0, flag=wx.EXPAND)
+            box.Add(control, 0, flag=wx.EXPAND)
         toolbar.SetSizer(box)
-                
-        if self.isMultiWindow:
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(toolbar, flag=wx.EXPAND)
-            self.pnlSDL.Hide()
-            sizer.Add(self.pnlSDL) # the panel must be added because clicks will not get through otherwise
-            self.SetSizerAndFit(sizer)
-            self.pnlSDL.Show()
-        else:
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(toolbar, flag=wx.EXPAND | wx.BOTTOM, border=0)
-            sizer.Add(self.pnlSDL, 1, flag=wx.EXPAND)
-            self.SetSizer(sizer)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(toolbar, flag=wx.EXPAND | wx.BOTTOM, border=0)
+        sizer.Add(self.pnlSDL, 1, flag=wx.EXPAND)
+        self.SetSizer(sizer)
 
     def startRendering(self):
         self.pnlSDL.startRendering()
